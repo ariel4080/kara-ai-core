@@ -1,0 +1,99 @@
+// TEMPLATE: Cache Interface for Repository
+// Placeholders: {Entity}, {entity}
+// Generated for: bancadigital-bm-{module_name}
+
+/// Interface para cache de {Entity}
+///
+/// Patrón: Cache Interface + InMemoryCache Singleton
+/// Basado en Transfers pattern (avanzado)
+abstract interface class {Entity}Cache {
+  /// Obtener lista cacheada
+  List<{Entity}>? getList();
+  
+  /// Cachear lista completa
+  void cacheList(List<{Entity}> entities);
+  
+  /// Obtener entity por ID
+  {Entity}? getById(String id);
+  
+  /// Cachear una entity específica
+  void cacheOne({Entity} entity);
+  
+  /// Limpiar todo el cache
+  void clear();
+  
+  /// Verificar si el cache es válido
+  bool isValid();
+}
+
+/// Implementación in-memory de {Entity}Cache
+///
+/// Singleton con TTL de 5 minutos
+class InMemory{Entity}Cache implements {Entity}Cache {
+  static final InMemory{Entity}Cache _instance = InMemory{Entity}Cache._internal();
+  factory InMemory{Entity}Cache() => _instance;
+  InMemory{Entity}Cache._internal();
+  
+  static const _cacheDuration = Duration(minutes: 5);
+  
+  List<{Entity}>? _cachedList;
+  DateTime? _cacheTimestamp;
+  final Map<String, {Entity}> _cachedItems = {};
+  
+  @override
+  List<{Entity}>? getList() {
+    if (!isValid()) return null;
+    return _cachedList;
+  }
+  
+  @override
+  void cacheList(List<{Entity}> entities) {
+    _cachedList = entities;
+    _cacheTimestamp = DateTime.now();
+    
+    // También cachear individualmente para búsquedas por ID
+    for (final entity in entities) {
+      _cachedItems[entity.id] = entity;
+    }
+  }
+  
+  @override
+  {Entity}? getById(String id) {
+    if (!isValid()) return null;
+    return _cachedItems[id];
+  }
+  
+  @override
+  void cacheOne({Entity} entity) {
+    _cachedItems[entity.id] = entity;
+    
+    // Actualizar en lista si existe
+    if (_cachedList != null) {
+      final index = _cachedList!.indexWhere((e) => e.id == entity.id);
+      if (index != -1) {
+        _cachedList![index] = entity;
+      } else {
+        _cachedList!.add(entity);
+      }
+    }
+  }
+  
+  @override
+  void clear() {
+    _cachedList = null;
+    _cacheTimestamp = null;
+    _cachedItems.clear();
+  }
+  
+  @override
+  bool isValid() {
+    if (_cacheTimestamp == null) return false;
+    return DateTime.now().difference(_cacheTimestamp!) < _cacheDuration;
+  }
+}
+
+/// IMPORTANTE:
+/// - Usar este cache en Repository
+/// - Llamar clear() cuando se modifiquen datos
+/// - Validar isValid() antes de usar cache
+/// - TTL configurable según necesidades

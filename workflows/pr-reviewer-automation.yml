@@ -1,0 +1,124 @@
+name: 🤖 PR Reviewer - Validación Automática - Leo
+
+# IMPORTANTE: Este workflow usa 'pull_request' y NO soporta PRs desde forks externos.
+# En PRs desde forks, GITHUB_TOKEN tiene permisos de solo lectura y los comentarios fallarán.
+# Si necesitas soportar forks, considera usar 'pull_request_target' (pero solo ejecuta
+# código confiable del branch base, nunca hagas checkout del código del fork).
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+    branches:
+      - main
+      - develop
+      - 'release-**'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  pr-validation:
+    name: Validar PR con Reglas de Desarrollo
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Necesario para analizar commits
+          
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: 🔍 Verificar GitHub CLI
+        run: |
+          if ! command -v gh &> /dev/null; then
+            echo "❌ Error: GitHub CLI (gh) no está instalado"
+            echo "El script pr_reviewer_validator.py depende de gh CLI"
+            exit 1
+          fi
+          echo "✅ GitHub CLI está disponible"
+          gh --version
+          
+      - name: ✅ Ejecutar Validación del PR
+        id: validate
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BRANCH: ${{ github.head_ref }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python .github/scripts/pr_reviewer_validator.py
+          
+      - name: 💬 Comentar Resultados en el PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Leer el reporte generado por el script
+            let report = '';
+            try {
+              report = fs.readFileSync('/tmp/pr-review-report.md', 'utf8');
+            } catch (error) {
+              report = '🤖 PR Reviewer - Validación Automática - Leo\n\n⚠️ Error al generar el reporte de validación.';
+            }
+            
+            // Buscar comentarios previos del bot (paginando todos los comentarios)
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100,
+              }
+            );
+            
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('🤖 PR Reviewer - Validación Automática - Leo')
+            );
+            
+            // Actualizar o crear comentario
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: report
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report
+              });
+            }
+            
+      - name: 🚨 Verificar Bloqueadores
+        if: always()
+        run: |
+          if [ -f /tmp/pr-validation-status ]; then
+            status=$(cat /tmp/pr-validation-status)
+            if [ "$status" = "BLOCKED" ]; then
+              echo "❌ PR tiene bloqueadores críticos. Revisa el comentario en el PR."
+              exit 1
+            elif [ "$status" = "WARNING" ]; then
+              echo "⚠️ PR tiene advertencias. Revisa el comentario en el PR."
+              # No fallar el workflow, solo advertir
+              exit 0
+            else
+              echo "✅ PR aprobado - Sin bloqueadores"
+              exit 0
+            fi
+          else
+            echo "⚠️ No se pudo determinar el estado de validación"
+            exit 1
+          fi

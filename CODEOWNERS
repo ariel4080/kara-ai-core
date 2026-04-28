@@ -1,0 +1,6 @@
+# Los cambios en los archivos dentro de la carpeta que contiene los pipelines
+# requieren la aprobación de @bac-credomatic/gsbd-devops y @bac-credomatic/gsbd-manager
+*           @bac-credomatic/gsbd-bancadigital-bm-app
+/.github/   @bac-credomatic/gsbd-devops
+/pipeline/  @bac-credomatic/gsbd-devops
+/devops/    @bac-credomatic/gsbd-devops

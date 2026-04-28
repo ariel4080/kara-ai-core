@@ -1,0 +1,147 @@
+// TEMPLATE: ViewModel Test with AsyncNotifier
+// Placeholders: {Screen}, {screen}, {ModuleName}, {moduleName}, {Entity}, 
+// Generated for: bancadigital-bm-{module_name}
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:bancadigital_bm_{module_name}/data/repository/{module_name}_repository_remote.dart';
+import 'package:bancadigital_bm_{module_name}/data/repository/models/{entity}.dart';
+import 'package:bancadigital_bm_{module_name}/ui/{screen}/view_model/{screen}_view_model.dart';
+import 'package:bancadigital_bm_{module_name}/ui/{screen}/view_model/{screen}_view_model_provider.dart';
+
+@GenerateMocks([{ModuleName}Repository])
+void main() {
+  group('{Screen}ViewModel', () {
+    late ProviderContainer container;
+    late Mock{ModuleName}Repository mockRepository;
+    
+    setUp(() {
+      mockRepository = Mock{ModuleName}Repository();
+      container = ProviderContainer(
+        overrides: [
+          {moduleName}RepositoryProvider.overrideWithValue(mockRepository),
+        ],
+      );
+    });
+    
+    tearDown(() {
+      container.dispose();
+    });
+    
+    test('should start in loading state', () {
+      // Arrange
+      when(mockRepository.get{Entity}List())
+          .thenAnswer((_) async => []);
+      
+      // Act
+      final state = container.read({screen}ViewModelProvider);
+      
+      // Assert
+      expect(state, isA<AsyncLoading>());
+    });
+    
+    test('should load entities successfully', () async {
+      // Arrange
+      final entities = [
+        {Entity}(id: '1'),
+        {Entity}(id: '2'),
+      ];
+      when(mockRepository.get{Entity}List())
+          .thenAnswer((_) async => entities);
+      
+      // Act
+      final listener = Listener<AsyncValue<List<{Entity}>>>();
+      container.listen<AsyncValue<List<{Entity}>>>(
+        {screen}ViewModelProvider,
+        listener,
+        fireImmediately: true,
+      );
+      
+      await container.read({screen}ViewModelProvider.future);
+      
+      // Assert
+      verify(listener(null, any)).called(1);  // Loading
+      verify(listener(any, any)).called(1);   // Data
+      
+      final state = container.read({screen}ViewModelProvider);
+      expect(state, isA<AsyncData<List<{Entity}>>>());
+      expect(state.value, equals(entities));
+      verify(mockRepository.get{Entity}List()).called(1);
+    });
+    
+    test('should handle errors correctly', () async {
+      // Arrange
+      final error = Exception('Failed to load');
+      when(mockRepository.get{Entity}List()).thenThrow(error);
+      
+      // Act
+      final listener = Listener<AsyncValue<List<{Entity}>>>();
+      container.listen<AsyncValue<List<{Entity}>>>(
+        {screen}ViewModelProvider,
+        listener,
+        fireImmediately: true,
+      );
+      
+      try {
+        await container.read({screen}ViewModelProvider.future);
+      } catch (_) {}
+      
+      // Assert
+      final state = container.read({screen}ViewModelProvider);
+      expect(state, isA<AsyncError>());
+      expect(state.error, equals(error));
+      verify(mockRepository.get{Entity}List()).called(1);
+    });
+    
+    test('refresh should reload data', () async {
+      // Arrange
+      final entities = [{Entity}(id: '1')];
+      when(mockRepository.get{Entity}List())
+          .thenAnswer((_) async => entities);
+      
+      // Act - Initial load
+      await container.read({screen}ViewModelProvider.future);
+      
+      // Clear interactions
+      clearInteractions(mockRepository);
+      
+      // Act - Refresh
+      await container.read({screen}ViewModelProvider.notifier).refresh();
+      
+      // Assert
+      verify(mockRepository.get{Entity}List()).called(1);
+      final state = container.read({screen}ViewModelProvider);
+      expect(state.value, equals(entities));
+    });
+    
+    test('create{Entity} should add entity and reload list', () async {
+      // Arrange
+      final newEntity = {Entity}(id: '1');
+      final updatedList = [newEntity];
+      
+      when(mockRepository.create{Entity}(newEntity))
+          .thenAnswer((_) async => newEntity);
+      when(mockRepository.get{Entity}List())
+          .thenAnswer((_) async => updatedList);
+      
+      // Act - Initial load
+      await container.read({screen}ViewModelProvider.future);
+      
+      // Act - Create
+      await container.read({screen}ViewModelProvider.notifier).create{Entity}(newEntity);
+      
+      // Assert
+      verify(mockRepository.create{Entity}(newEntity)).called(1);
+      verify(mockRepository.get{Entity}List()).called(2); // Initial + after create
+      
+      final state = container.read({screen}ViewModelProvider);
+      expect(state.value, equals(updatedList));
+    });
+  });
+}
+
+// Mock listener helper
+class Listener<T> extends Mock {
+  void call(T? previous, T next);
+}

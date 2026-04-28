@@ -1,0 +1,155 @@
+import 'package:feature_commons/feature_commons.dart';
+import 'package:flutter/material.dart';
+
+import '../ui/{screen}/{screen}_screen.dart';
+
+/// Navigation configuration for {ModuleName} module
+///
+/// Defines:
+/// - Route paths and names (constants)
+/// - Route parameters
+/// - GoRoute configuration (routerConfig)
+/// - Navigation helper methods
+///
+/// This configuration is consumed by {ModuleName}ModuleDefinition.getRouterConfig()
+class {ModuleName}Navigation {
+  // ═══════════════════════════════════════════════════════════════
+  // ROUTE PATHS
+  // ═══════════════════════════════════════════════════════════════
+  
+  /// Main route for {module_name} lobby/list
+  static const String {module_name}Lobby = '/{module_name}';
+  
+  /// Detail route for individual {entity}
+  static const String {module_name}Detail = '/{module_name}_detail';
+  
+  // ADD_MORE_ROUTES_HERE
+  
+  // ═══════════════════════════════════════════════════════════════
+  // ROUTE PARAMETERS
+  // ═══════════════════════════════════════════════════════════════
+  
+  static const String _{entity}IdParam = '{entity}Id';
+  // ADD_MORE_PARAMS_HERE
+  
+  // ═══════════════════════════════════════════════════════════════
+  // ROUTE OBSERVER (opcional - para lifecycle tracking)
+  // ═══════════════════════════════════════════════════════════════
+  
+  static RouteObserver<PageRoute> {module_name}RouteObserver = RouteObserver<PageRoute>();
+  
+  // ═══════════════════════════════════════════════════════════════
+  // ROUTE CONFIGURATION
+  // ═══════════════════════════════════════════════════════════════
+  
+  static final List<GoRoute> routerConfig = [
+    GoRoute(
+      path: {module_name}Lobby,
+      name: {module_name}Lobby,
+      builder: (context, state) {
+        return const {Screen}Screen();
+      },
+    ),
+    GoRoute(
+      path: '${{module_name}Detail}/:$_{entity}IdParam',
+      name: {module_name}Detail,
+      builder: (context, state) {
+        final {entity}Id = state.pathParameters[_{entity}IdParam];
+        return {Screen}DetailScreen({entity}Id: {entity}Id!);
+      },
+    ),
+    // ADD_MORE_ROUTES_CONFIG_HERE
+  ];
+  
+  // ═══════════════════════════════════════════════════════════════
+  // NAVIGATION HELPER METHODS
+  // ═══════════════════════════════════════════════════════════════
+  
+  /// Navigate to {module_name} lobby/list
+  static void goTo{ModuleName}Lobby(BuildContext context) {
+    context.pushNamed({module_name}Lobby);
+  }
+  
+  /// Navigate to {entity} detail
+  static void goTo{Entity}Detail(BuildContext context, String {entity}Id) {
+    context.pushNamed(
+      {module_name}Detail,
+      pathParameters: {_{entity}IdParam: {entity}Id},
+    );
+  }
+  
+  // ADD_MORE_NAVIGATION_METHODS_HERE
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PLACEHOLDERS PARA REEMPLAZO
+// ═══════════════════════════════════════════════════════════════
+//
+// {ModuleName}    → PascalCase (Wishlist, Goals, Transfers)
+// {module_name}   → snake_case (wishlist, goals, transfers)
+// {Entity}        → PascalCase singular (WishlistItem, Goal, Transfer)
+// {entity}        → camelCase singular (wishlistItem, goal, transfer)
+// {Screen}        → PascalCase screen name (WishlistList, GoalDetail)
+// {screen}        → snake_case screen name (wishlist_list, goal_detail)
+//
+// ═══════════════════════════════════════════════════════════════
+// PATRONES DE COMPLEJIDAD
+// ═══════════════════════════════════════════════════════════════
+//
+// SIMPLE (1-2 screens):
+// ---------------------
+// - Lobby route
+// - Detail route (opcional)
+// - Sin child routes
+//
+// MEDIUM (3-5 screens):
+// ---------------------
+// - Lobby route
+// - Detail route con child routes (tabs)
+// - Create/Edit routes
+// - Receipt routes
+//
+// COMPLEX (6+ screens):
+// ---------------------
+// - Multiple sub-navigations (ver Transfers pattern)
+// - Agregar sub-navigation imports:
+//   import '../sub_feature/navigation/sub_feature_navigation.dart';
+// - Agregar en routerConfig:
+//   static final List<GoRoute> routerConfig = [
+//     ...SubFeature1Navigation.routerConfig,
+//     ...SubFeature2Navigation.routerConfig,
+//   ];
+//
+// ═══════════════════════════════════════════════════════════════
+// EJEMPLO DE CHILD ROUTES (Medium/Complex)
+// ═══════════════════════════════════════════════════════════════
+//
+// GoRoute(
+//   path: {module_name}Detail,
+//   name: {module_name}Detail,
+//   builder: (context, state) => {Screen}Shell(),
+//   routes: [
+//     GoRoute(
+//       path: 'overview',
+//       builder: (context, state) => OverviewTab(),
+//     ),
+//     GoRoute(
+//       path: 'transactions',
+//       builder: (context, state) => TransactionsTab(),
+//     ),
+//   ],
+// ),
+//
+// ═══════════════════════════════════════════════════════════════
+// USO DEL TEMPLATE
+// ═══════════════════════════════════════════════════════════════
+//
+// 1. Reemplazar placeholders básicos
+// 2. Ajustar según complejidad (Simple/Medium/Complex)
+// 3. Agregar rutas específicas en ADD_MORE_ROUTES_HERE
+// 4. Agregar parámetros en ADD_MORE_PARAMS_HERE
+// 5. Agregar navigation helpers en ADD_MORE_NAVIGATION_METHODS_HERE
+//
+// Ubicación final: lib/navigation/{module_name}_navigation.dart
+//
+// ═══════════════════════════════════════════════════════════════

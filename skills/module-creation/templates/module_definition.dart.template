@@ -1,0 +1,84 @@
+import 'package:feature_commons/feature_commons.dart';
+import 'package:flutter/widgets.dart';
+
+import '../constants/{module_name}_feature_flags_ids.dart';
+import '../navigation/{module_name}_navigation.dart';
+import '../ui/l10n/generated/{module_name}_localizations.dart';
+
+/// Module definition for {ModuleName}
+///
+/// Implements the Module pattern to register:
+/// - Localization delegates
+/// - Route configuration  
+/// - Redirect rules (feature flags)
+/// 
+/// This class is registered in ModuleManager in main.dart
+class {ModuleName}ModuleDefinition extends Module<{ModuleName}Localizations> {
+  {ModuleName}ModuleDefinition() : super('{module_name}');
+
+  @override
+  List<LocalizationsDelegate<{ModuleName}Localizations>> getLocalizationDelegate() => [
+    {ModuleName}Localizations.delegate,
+  ];
+
+  @override
+  List<GoRoute> getRouterConfig() => {ModuleName}Navigation.routerConfig;
+
+  // REDIRECT_RULES_PLACEHOLDER
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PLACEHOLDERS PARA REEMPLAZO
+// ═══════════════════════════════════════════════════════════════
+//
+// {ModuleName}          → Nombre del módulo en PascalCase (ej: Wishlist, Goals)
+// {module_name}         → Nombre del módulo en snake_case (ej: wishlist, goals)
+// REDIRECT_RULES_PLACEHOLDER → Se reemplaza según tipo de redirect:
+//
+//   OPCIÓN A - Feature Flag Simple (Goals pattern):
+//   -----------------------------------------------
+//   @override
+//   Map<String, String> getRouteRedirectionFlags() => {
+//     {ModuleName}Navigation.{routeName}: {ModuleName}FeatureFlagIds.{FLAG_ID}.id,
+//   };
+//
+//   OPCIÓN B - Redirect Rules Avanzado (Transfers pattern):
+//   --------------------------------------------------------
+//   @override
+//   List<RedirectRule> redirectRules() {
+//     return [
+//       FeatureBehaviorRedirectRule(
+//         flagId: {ModuleName}FlagIds.{FLAG_ID}.id,
+//         routeNames: [
+//           {ModuleName}Navigation.{routeName1},
+//           {ModuleName}Navigation.{routeName2},
+//         ],
+//       ),
+//     ];
+//   }
+//
+//   OPCIÓN C - Sin redirects (más común para módulos simples):
+//   -----------------------------------------------------------
+//   // No redirect rules needed for this module
+//
+// ═══════════════════════════════════════════════════════════════
+// USO DEL TEMPLATE
+// ═══════════════════════════════════════════════════════════════
+//
+// 1. Reemplazar placeholders:
+//    {ModuleName} → Goals
+//    {module_name} → goals
+//
+// 2. Seleccionar patrón de redirect según pregunta #9:
+//    - Simple: Opción A (feature flag map)
+//    - Complex: Opción B (RedirectRule list)
+//    - None: Opción C (comentario)
+//
+// 3. Ubicación final:
+//    lib/module_definition/{module_name}_module_definition.dart
+//
+// 4. Registro en main.dart:
+//    final moduleManager = ModuleManager()
+//      ..registerModule({ModuleName}ModuleDefinition());
+//
+// ═══════════════════════════════════════════════════════════════

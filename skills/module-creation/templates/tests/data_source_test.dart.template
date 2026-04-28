@@ -1,0 +1,95 @@
+// TEMPLATE: DataSource Test
+// Placeholders: {ModuleName}, {moduleName}, {Entity}, {entity}
+// Generated for: bancadigital-bm-{module_name}
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:core_data/core_data.dart';
+import 'package:bancadigital_bm_{module_name}/data/api/{module_name}_api.dart';
+import 'package:bancadigital_bm_{module_name}/data/data_source/{module_name}_data_source.dart';
+import 'package:bancadigital_bm_{module_name}/data/data_source/dto/{entity}_dto.dart';
+
+@GenerateMocks([{ModuleName}Api])
+void main() {
+  group('{ModuleName}DataSourceRemote', () {
+    late Mock{ModuleName}Api mockApi;
+    late {ModuleName}DataSourceRemote dataSource;
+    
+    setUp(() {
+      mockApi = Mock{ModuleName}Api();
+      dataSource = {ModuleName}DataSourceRemote(api: mockApi);
+    });
+    
+    group('fetch{Entity}List', () {
+      test('should return ApiResponse.success when API call succeeds', () async {
+        // Arrange
+        final dtos = [
+          {Entity}Dto(id: '1'),
+          {Entity}Dto(id: '2'),
+        ];
+        when(mockApi.get{Entity}List()).thenAnswer((_) async => dtos);
+        
+        // Act
+        final result = await dataSource.fetch{Entity}List();
+        
+        // Assert
+        expect(result, isA<ApiResponseSuccess<List<{Entity}Dto>>>());
+        result.when(
+          success: (data) => expect(data, equals(dtos)),
+          error: (_) => fail('Should not be error'),
+          empty: () => fail('Should not be empty'),
+        );
+        verify(mockApi.get{Entity}List()).called(1);
+      });
+      
+      test('should return ApiResponse.error when API call fails', () async {
+        // Arrange
+        final error = Exception('Network error');
+        when(mockApi.get{Entity}List()).thenThrow(error);
+        
+        // Act
+        final result = await dataSource.fetch{Entity}List();
+        
+        // Assert
+        expect(result, isA<ApiResponseError>());
+        verify(mockApi.get{Entity}List()).called(1);
+      });
+      
+      test('should return ApiResponse.empty when API returns empty list', () async {
+        // Arrange
+        when(mockApi.get{Entity}List()).thenAnswer((_) async => []);
+        
+        // Act
+        final result = await dataSource.fetch{Entity}List();
+        
+        // Assert
+        result.when(
+          success: (data) => expect(data, isEmpty),
+          error: (_) => fail('Should not be error'),
+          empty: () => {}, // Expected
+        );
+        verify(mockApi.get{Entity}List()).called(1);
+      });
+    });
+    
+    group('create{Entity}', () {
+      test('should return ApiResponse.success when creation succeeds', () async {
+        // Arrange
+        final dto = {Entity}Dto(id: '1');
+        when(mockApi.create{Entity}(any)).thenAnswer((_) async => dto);
+        
+        // Act
+        final result = await dataSource.create{Entity}(dto);
+        
+        // Assert
+        expect(result, isA<ApiResponseSuccess<{Entity}Dto>>());
+        result.when(
+          success: (data) => expect(data, equals(dto)),
+          error: (_) => fail('Should not be error'),
+          empty: () => fail('Should not be empty'),
+        );
+        verify(mockApi.create{Entity}(dto)).called(1);
+      });
+    });
+  });
+}

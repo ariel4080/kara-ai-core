@@ -1,0 +1,140 @@
+// TEMPLATE: ViewModel State class
+// Placeholders: {Screen}, {Entity}
+// Generated for: bancadigital-bm-{module_name}
+import 'package:equatable/equatable.dart';
+import '../../../data/repository/models/{entity}.dart';
+
+/// Estado del {Screen}ViewModel
+///
+/// Consolidar múltiples estados en una sola clase
+/// evita proliferación de providers.
+class {Screen}State extends Equatable {
+  final List<{Entity}> items;
+  final {Entity}? selectedItem;
+  final bool isLoading;
+  final String? errorMessage;
+  final int currentPage;
+  final bool hasMorePages;
+  final {Screen}Filter? filter;
+  
+  const {Screen}State({
+    this.items = const [],
+    this.selectedItem,
+    this.isLoading = false,
+    this.errorMessage,
+    this.currentPage = 1,
+    this.hasMorePages = false,
+    this.filter,
+  });
+  
+  /// Copia con modificaciones
+  {Screen}State copyWith({
+    List<{Entity}>? items,
+    {Entity}? selectedItem,
+    bool? isLoading,
+    String? errorMessage,
+    int? currentPage,
+    bool? hasMorePages,
+    {Screen}Filter? filter,
+  }) {
+    return {Screen}State(
+      items: items ?? this.items,
+      selectedItem: selectedItem ?? this.selectedItem,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage ?? this.errorMessage,
+      currentPage: currentPage ?? this.currentPage,
+      hasMorePages: hasMorePages ?? this.hasMorePages,
+      filter: filter ?? this.filter,
+    );
+  }
+  
+  /// Estado inicial
+  factory {Screen}State.initial() {
+    return const {Screen}State();
+  }
+  
+  /// Estado de carga
+  {Screen}State toLoading() {
+    return copyWith(isLoading: true, errorMessage: null);
+  }
+  
+  /// Estado de éxito
+  {Screen}State toSuccess(List<{Entity}> items) {
+    return copyWith(
+      items: items,
+      isLoading: false,
+      errorMessage: null,
+    );
+  }
+  
+  /// Estado de error
+  {Screen}State toError(String message) {
+    return copyWith(
+      isLoading: false,
+      errorMessage: message,
+    );
+  }
+  
+  @override
+  List<Object?> get props => [
+        items,
+        selectedItem,
+        isLoading,
+        errorMessage,
+        currentPage,
+        hasMorePages,
+        filter,
+      ];
+}
+
+/// Filtro para {Screen}
+///
+/// Opcional: Define filtros específicos del módulo
+class {Screen}Filter extends Equatable {
+  final String? searchQuery;
+  final {Entity}Status? status;
+  final DateTime? dateFrom;
+  final DateTime? dateTo;
+  
+  const {Screen}Filter({
+    this.searchQuery,
+    this.status,
+    this.dateFrom,
+    this.dateTo,
+  });
+  
+  {Screen}Filter copyWith({
+    String? searchQuery,
+    {Entity}Status? status,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+  }) {
+    return {Screen}Filter(
+      searchQuery: searchQuery ?? this.searchQuery,
+      status: status ?? this.status,
+      dateFrom: dateFrom ?? this.dateFrom,
+      dateTo: dateTo ?? this.dateTo,
+    );
+  }
+  
+  /// Filtro vacío
+  factory {Screen}Filter.empty() {
+    return const {Screen}Filter();
+  }
+  
+  /// Indica si hay filtros activos
+  bool get hasFilters {
+    return searchQuery != null ||
+           status != null ||
+           dateFrom != null ||
+           dateTo != null;
+  }
+  
+  @override
+  List<Object?> get props => [searchQuery, status, dateFrom, dateTo];
+}
+
+/// IMPORTANTE:
+/// - Usar Notifier<{Screen}State> en lugar de múltiples StateProviders
+/// - Máximo 15 providers top-level por módulo
+/// - State consolidado evita proliferación de providers

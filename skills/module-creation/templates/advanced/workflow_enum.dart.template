@@ -1,0 +1,149 @@
+// TEMPLATE: Workflow Enums with Dual Pattern
+// Placeholders: {Workflow}, {workflow}, {ModuleName}
+// Generated for: bancadigital-bm-{module_name}
+import 'package:core_data/core_data.dart';
+
+/// Steps del workflow {Workflow}
+///
+/// Implementa [WorkflowStep] para navegación automática
+/// entre pasos y agrupación lógica.
+enum {Workflow}Step implements WorkflowStep {
+  // TODO: Definir steps según flujo de negocio
+  
+  // Grupo: Inicio
+  welcome({Workflow}Group.intro),
+  disclaimer({Workflow}Group.intro),
+  
+  // Grupo: Configuración
+  selectAccount({Workflow}Group.setup),
+  enterAmount({Workflow}Group.setup),
+  selectDate({Workflow}Group.setup),
+  
+  // Grupo: Revisión
+  review({Workflow}Group.confirmation),
+  
+  // Grupo: Resultado
+  success({Workflow}Group.result),
+  error({Workflow}Group.result);
+
+  const {Workflow}Step(this.group);
+
+  @override
+  final {Workflow}Group group;
+
+  @override
+  {Workflow}Step? get nextStep {
+    final values = {Workflow}Step.values;
+    final currentIndex = values.indexOf(this);
+    return currentIndex < values.length - 1 ? values[currentIndex + 1] : null;
+  }
+
+  @override
+  {Workflow}Step? get previousStep {
+    final currentIndex = values.indexOf(this);
+    return currentIndex > 0 ? values[currentIndex - 1] : null;
+  }
+  
+  /// Indica si este step puede retroceder
+  bool get canGoBack {
+    return previousStep != null && 
+           this != {Workflow}Step.welcome &&
+           this != {Workflow}Step.success &&
+           this != {Workflow}Step.error;
+  }
+  
+  /// Indica si este step es el último del flujo normal
+  bool get isFinal {
+    return this == {Workflow}Step.success || 
+           this == {Workflow}Step.error;
+  }
+  
+  /// Progreso del workflow (0.0 a 1.0)
+  double get progress {
+    final totalSteps = {Workflow}Step.values.length - 2; // Excluyendo success/error
+    final currentStep = values.indexOf(this);
+    return (currentStep / totalSteps).clamp(0.0, 1.0);
+  }
+}
+
+/// Grupos lógicos del workflow {Workflow}
+///
+/// Agrupa steps relacionados para navegación
+/// y validaciones por sección.
+enum {Workflow}Group implements WorkflowGroup {
+  intro,
+  setup,
+  confirmation,
+  result;
+  
+  /// Título del grupo para UI
+  String get title {
+    switch (this) {
+      case {Workflow}Group.intro:
+        return 'Introducción';
+      case {Workflow}Group.setup:
+        return 'Configuración';
+      case {Workflow}Group.confirmation:
+        return 'Confirmación';
+      case {Workflow}Group.result:
+        return 'Resultado';
+    }
+  }
+  
+  /// Descripción del grupo
+  String get description {
+    switch (this) {
+      case {Workflow}Group.intro:
+        return 'Información inicial';
+      case {Workflow}Group.setup:
+        return 'Configura los detalles';
+      case {Workflow}Group.confirmation:
+        return 'Revisa tu información';
+      case {Workflow}Group.result:
+        return 'Resultado de la operación';
+    }
+  }
+  
+  /// Steps que pertenecen a este grupo
+  List<{Workflow}Step> get steps {
+    return {Workflow}Step.values.where((step) => step.group == this).toList();
+  }
+  
+  /// Indica si todos los steps del grupo están completados
+  bool isCompleted({Workflow}Step currentStep) {
+    final groupSteps = steps;
+    final currentIndex = {Workflow}Step.values.indexOf(currentStep);
+    final lastGroupStepIndex = {Workflow}Step.values.indexOf(groupSteps.last);
+    return currentIndex > lastGroupStepIndex;
+  }
+}
+
+/// Extensiones útiles para trabajar con el workflow
+extension {Workflow}StepExtensions on {Workflow}Step {
+  /// Ruta de navegación para este step
+  String get routePath {
+    switch (this) {
+      case {Workflow}Step.welcome:
+        return '/{module-name}/workflow/welcome';
+      case {Workflow}Step.disclaimer:
+        return '/{module-name}/workflow/disclaimer';
+      case {Workflow}Step.selectAccount:
+        return '/{module-name}/workflow/select-account';
+      case {Workflow}Step.enterAmount:
+        return '/{module-name}/workflow/enter-amount';
+      case {Workflow}Step.selectDate:
+        return '/{module-name}/workflow/select-date';
+      case {Workflow}Step.review:
+        return '/{module-name}/workflow/review';
+      case {Workflow}Step.success:
+        return '/{module-name}/workflow/success';
+      case {Workflow}Step.error:
+        return '/{module-name}/workflow/error';
+    }
+  }
+  
+  /// Nombre de la pantalla asociada
+  String get screenName {
+    return name.split(RegExp(r'(?=[A-Z])')).join('_').toLowerCase();
+  }
+}

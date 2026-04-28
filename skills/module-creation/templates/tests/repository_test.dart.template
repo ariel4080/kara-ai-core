@@ -1,0 +1,128 @@
+// TEMPLATE: Repository Test
+// Placeholders: {ModuleName}, {moduleName}, {Entity}, {entity}
+// Generated for: bancadigital-bm-{module_name}
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:core_data/core_data.dart';
+import 'package:bancadigital_bm_{module_name}/data/data_source/{module_name}_data_source.dart';
+import 'package:bancadigital_bm_{module_name}/data/data_source/dto/{entity}_dto.dart';
+import 'package:bancadigital_bm_{module_name}/data/repository/{module_name}_repository_remote.dart';
+import 'package:bancadigital_bm_{module_name}/data/repository/models/{entity}.dart';
+import 'package:bancadigital_bm_{module_name}/data/repository/mappers/{entity}_mapper.dart';
+
+@GenerateMocks([{ModuleName}DataSource, {Entity}Mapper])
+void main() {
+  group('{ModuleName}RepositoryRemote', () {
+    late Mock{ModuleName}DataSource mockDataSource;
+    late Mock{Entity}Mapper mockMapper;
+    late {ModuleName}RepositoryRemote repository;
+    
+    setUp(() {
+      mockDataSource = Mock{ModuleName}DataSource();
+      mockMapper = Mock{Entity}Mapper();
+      repository = {ModuleName}RepositoryRemote(
+        dataSource: mockDataSource,
+        mapper: mockMapper,
+      );
+    });
+    
+    group('get{Entity}List', () {
+      test('should return list of entities when successful', () async {
+        // Arrange
+        final dtos = [
+          {Entity}Dto(id: '1'),
+          {Entity}Dto(id: '2'),
+        ];
+        final entities = [
+          {Entity}(id: '1'),
+          {Entity}(id: '2'),
+        ];
+        
+        when(mockDataSource.fetch{Entity}List())
+            .thenAnswer((_) async => ApiResponse.success(dtos));
+        when(mockMapper.fromDtoToEntity(any))
+            .thenAnswer((invocation) {
+          final dto = invocation.positionalArguments[0] as {Entity}Dto;
+          return entities.firstWhere((e) => e.id == dto.id);
+        });
+        
+        // Act
+        final result = await repository.get{Entity}List();
+        
+        // Assert
+        expect(result, equals(entities));
+        verify(mockDataSource.fetch{Entity}List()).called(1);
+        verify(mockMapper.fromDtoToEntity(any)).called(dtos.length);
+      });
+      
+      test('should throw error when API fails', () async {
+        // Arrange
+        final error = Exception('API Error');
+        when(mockDataSource.fetch{Entity}List())
+            .thenAnswer((_) async => ApiResponse.error(error));
+        
+        // Act & Assert
+        expect(
+          () => repository.get{Entity}List(),
+          throwsA(isA<Exception>()),
+        );
+        verify(mockDataSource.fetch{Entity}List()).called(1);
+        verifyNever(mockMapper.fromDtoToEntity(any));
+      });
+      
+      test('should return empty list when response is empty', () async {
+        // Arrange
+        when(mockDataSource.fetch{Entity}List())
+            .thenAnswer((_) async => const ApiResponse.empty());
+        
+        // Act
+        final result = await repository.get{Entity}List();
+        
+        // Assert
+        expect(result, isEmpty);
+        verify(mockDataSource.fetch{Entity}List()).called(1);
+        verifyNever(mockMapper.fromDtoToEntity(any));
+      });
+    });
+    
+    group('create{Entity}', () {
+      test('should return entity when creation succeeds', () async {
+        // Arrange
+        final entity = {Entity}(id: '1');
+        final dto = {Entity}Dto(id: '1');
+        
+        when(mockMapper.fromEntityToDto(entity)).thenReturn(dto);
+        when(mockDataSource.create{Entity}(dto))
+            .thenAnswer((_) async => ApiResponse.success(dto));
+        when(mockMapper.fromDtoToEntity(dto)).thenReturn(entity);
+        
+        // Act
+        final result = await repository.create{Entity}(entity);
+        
+        // Assert
+        expect(result, equals(entity));
+        verify(mockMapper.fromEntityToDto(entity)).called(1);
+        verify(mockDataSource.create{Entity}(dto)).called(1);
+        verify(mockMapper.fromDtoToEntity(dto)).called(1);
+      });
+      
+      test('should throw error when creation fails', () async {
+        // Arrange
+        final entity = {Entity}(id: '1');
+        final dto = {Entity}Dto(id: '1');
+        final error = Exception('Creation failed');
+        
+        when(mockMapper.fromEntityToDto(entity)).thenReturn(dto);
+        when(mockDataSource.create{Entity}(dto))
+            .thenAnswer((_) async => ApiResponse.error(error));
+        
+        // Act & Assert
+        expect(
+          () => repository.create{Entity}(entity),
+          throwsA(isA<Exception>()),
+        );
+      });
+    });
+  });
+}

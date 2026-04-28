@@ -1,0 +1,34 @@
+// TEMPLATE: DTO with Freezed + JsonSerializable
+// Placeholders: {Entity}, {entity}
+// Generated for: bancadigital-bm-{module_name}
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part '{entity}_dto.freezed.dart';
+part '{entity}_dto.g.dart';
+
+/// DTO para {Entity}
+///
+/// Representa la estructura de datos que viene/va a la API.
+/// Usa Freezed para inmutabilidad y generación de código.
+@freezed
+class {Entity}Dto with _${Entity}Dto {
+  const factory {Entity}Dto({
+    required String id,
+    // TODO: Agregar campos según estructura de API
+    // Ejemplo:
+    // required String name,
+    // required double amount,
+    // String? description,
+    // @JsonKey(name: 'created_at') DateTime? createdAt,
+  }) = _{Entity}Dto;
+  
+  /// Constructor desde JSON
+  factory {Entity}Dto.fromJson(Map<String, dynamic> json) =>
+      _${Entity}DtoFromJson(json);
+}
+
+/// IMPORTANTE: 
+/// - NO agregar lógica de negocio aquí
+/// - NO hacer transformaciones en fromJson
+/// - Solo conversión pura JSON <-> DTO
+/// - La lógica va en Mapper o Entity
